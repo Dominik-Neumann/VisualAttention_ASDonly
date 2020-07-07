@@ -142,8 +142,15 @@ Participants completed a mean of 7.1 (SD = 1.95) trials per condition.<br>
 dat_attention_analysiswindowNA$Child_Condition <- interaction(dat_attention_analysiswindowNA$Child_ID,
                                                               dat_attention_analysiswindowNA$Condition)
 # Creating variable containing counts of trials retained per participant
-dat_TRcounts <- ddply(dat_attention_analysiswindowNA, ~Child_Condition, summarise, CountsTR = length(unique(Tr_Num)))
-dat_attention_analysiswindowNA <- merge(dat_attention_analysiswindowNA, dat_TRcounts, by = "Child_Condition")
+dat_TRcounts <- ddply(dat_attention_analysiswindowNA,
+                      ~Child_Condition,
+                      summarise,
+                      CountsTR = length(unique(Tr_Num)))
+
+dat_attention_analysiswindowNA <- merge(dat_attention_analysiswindowNA,
+                                        dat_TRcounts,
+                                        by = "Child_Condition")
+
 describe(dat_attention_analysiswindowNA$CountsTR)
 ```
 <p>
@@ -167,7 +174,11 @@ In order to analyse data appropriately, data were transformed to a series of lon
 ```{r results = FALSE}
 ### TRANSFORMING ANALYSIS WINDOW ONLY
 dat_analysiswindow$Child_ID <- factor(dat_analysiswindow$Child_ID)
-dat_analysiswindow_long <- gather(dat_analysiswindow, frame, accuracy, frame_097:frame_148, factor_key = TRUE)
+dat_analysiswindow_long <- gather(dat_analysiswindow,
+                                  frame,
+                                  accuracy,
+                                  frame_097:frame_148,
+                                  factor_key = TRUE)
 
 ### OVERALL DATA
 # Subsetting full data based on prior cleaning procedures
@@ -177,22 +188,35 @@ dat_attention_full <- subset(dat_attention, Child_ID %in% dat_analysiswindow$Chi
 dat_attention_pre <- subset(dat_attention_full, select = -c(frame_097:frame_237))
 dat_attention_pre$prepost <- "pre-analysis"
 dat_attention_pre$Child_ID <- factor(dat_attention_pre$Child_ID)
-dat_attention_pre_long <- gather(dat_attention_pre, frame, accuracy, frame_001:frame_096, factor_key = TRUE)
+dat_attention_pre_long <- gather(dat_attention_pre,
+                                 frame,
+                                 accuracy,
+                                 frame_001:frame_096,
+                                 factor_key = TRUE)
 
 # Subsetting for the analysis window
 dat_attention_analysis <- subset(dat_attention_full, select = -c((frame_001:frame_096), (frame_149:frame_237)))
 dat_attention_analysis$prepost <- "analysis"
 dat_attention_analysis$Child_ID <- factor(dat_attention_analysis$Child_ID)
-dat_attention_analysis_long <- gather(dat_attention_analysis, frame, accuracy, frame_097:frame_148, factor_key = TRUE)
+dat_attention_analysis_long <- gather(dat_attention_analysis,
+                                      frame,
+                                      accuracy,
+                                      frame_097:frame_148,
+                                      factor_key = TRUE)
 
 # Subsetting for the post-analysis window
 dat_attention_post <- subset(dat_attention_full, select = -c((frame_001:frame_148)))
 dat_attention_post$prepost <- "post-analysis"
 dat_attention_post$Child_ID <- factor(dat_attention_post$Child_ID)
-dat_attention_post_long <- gather(dat_attention_post, frame, accuracy, frame_149:frame_237, factor_key = TRUE)
+dat_attention_post_long <- gather(dat_attention_post,
+                                  frame, accuracy,
+                                  frame_149:frame_237,
+                                  factor_key = TRUE)
 
 # Combining
-dat_attention_long <- rbind(dat_attention_pre_long, dat_attention_analysis_long, dat_attention_post_long)
+dat_attention_long <- rbind(dat_attention_pre_long,
+                            dat_attention_analysis_long,
+                            dat_attention_post_long)
 ```
 
 # Measuring Accuracy
@@ -214,3 +238,12 @@ dat_attention_long <- dat_attention_long %>%
   dplyr::group_by(Child_ID, frame, Condition) %>%
   dplyr::mutate(mean_accuracy = mean(accuracy, na.rm = TRUE))
 ```
+```{r results = FALSE}
+dat_attention_kidxcondition <- describeBy(dat_attention_long$mean_accuracy,
+                                          list(dat_attention_long$Child_ID,
+                                               dat_attention_long$Condition),
+                                          mat = TRUE, digits = 2)
+names(dat_attention_kidxcondition)[names(dat_attention_kidxcondition) == 'group1'] = 'id'
+names(dat_attention_kidxcondition)[names(dat_attention_kidxcondition) == 'group2'] = 'condition'
+```
+
