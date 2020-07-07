@@ -227,9 +227,18 @@ summary {
 
 
 <!-- rnb-text-begin -->
+<p><b>Author: Dominik Neumann</b><br> Michigan State University</p>
 <!-- rnb-text-end -->
+<!-- rnb-text-begin -->
+<div id="setup" class="section level1">
+<h1>Setup</h1>
+<p>Please select “dat_visualattention.csv” for dat_attention data table and “dat_master.csv” for dat_master data table in order to run this script properly. <br> Missing values were coded as -999. We coded “-“ values as -888, indicating participants looked at the center of the screen and thus at neither distracter nor target. We coded “.” values as -777, indicating participants looking outside of the screen.</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-chunk-end -->
+</div>
 
-<div id="rmd-source-code">LS0tCnRpdGxlOiAiVmlzdWFsIGF0dGVudGlvbiB0byBuZXV0cmFsIHZzIGNvbXBldGluZyB2cyByZWluZm9yY2luZyBzdGltdWxpIGFtb25nIGNoaWxkcmVuIHdpdGggQVNEIgpvdXRwdXQ6IGh0bWxfbm90ZWJvb2sKLS0tCgo=</div>
+<div id="rmd-source-code">LS0tCnRpdGxlOiAiVmlzdWFsIGF0dGVudGlvbiB0byBuZXV0cmFsIHZzIGNvbXBldGluZyB2cyByZWluZm9yY2luZyBzdGltdWxpIGFtb25nIGNoaWxkcmVuIHdpdGggQVNEIgpvdXRwdXQ6IGh0bWxfbm90ZWJvb2sKLS0tCjxiPkF1dGhvcjogRG9taW5payBOZXVtYW5uPC9iPjxicj4KTWljaGlnYW4gU3RhdGUgVW5pdmVyc2l0eQoKYGBge3IgZ2xvYmFsX29wdGlvbnMsIGluY2x1ZGUgPSBGQUxTRX0Kcm0obGlzdCA9IGxzKCkpCmtuaXRyOjpvcHRzX2NodW5rJHNldChlY2hvID0gRkFMU0UsIHdhcm5pbmcgPSBGQUxTRSwgbWVzc2FnZSA9IEZBTFNFKQpgYGAKCiMgU2V0dXAKUGxlYXNlIHNlbGVjdCAiZGF0X3Zpc3VhbGF0dGVudGlvbi5jc3YiIGZvciBkYXRfYXR0ZW50aW9uIGRhdGEgdGFibGUgYW5kICJkYXRfbWFzdGVyLmNzdiIgZm9yIGRhdF9tYXN0ZXIgZGF0YSB0YWJsZSBpbiBvcmRlciB0byBydW4gdGhpcyBzY3JpcHQgcHJvcGVybHkuIDxicj4KTWlzc2luZyB2YWx1ZXMgd2VyZSBjb2RlZCBhcyAtOTk5LiBXZSBjb2RlZCDigJwt4oCcIHZhbHVlcyBhcyAtODg4LCBpbmRpY2F0aW5nIHBhcnRpY2lwYW50cyBsb29rZWQgYXQgdGhlIGNlbnRlciBvZiB0aGUgc2NyZWVuIGFuZCB0aHVzIGF0IG5laXRoZXIgZGlzdHJhY3RlciBub3IgdGFyZ2V0LiBXZSBjb2RlZCDigJwu4oCdIHZhbHVlcyBhcyAtNzc3LCBpbmRpY2F0aW5nIHBhcnRpY2lwYW50cyBsb29raW5nIG91dHNpZGUgb2YgdGhlIHNjcmVlbi4KYGBge3IgcmVzdWx0cyA9IEZBTFNFfQojIyMgT1BUSU9OUwpvcHRpb25zKHNjaXBlbiA9IDMpCgojIyMgTE9BRElORyBQQUNLQUdFUwojIEdlbmVyYWwgbGlicmFyaWVzCmxpYnJhcnkodGlkeXZlcnNlKQpsaWJyYXJ5KHBzeWNoKQpsaWJyYXJ5KHBseXIpCgojIE11bHRpbGV2ZWwgbW9kZWxpbmcKbGlicmFyeShsbWU0KQpsaWJyYXJ5KG5sbWUpCmxpYnJhcnkoZXopCmxpYnJhcnkobXVsdGNvbXApCmxpYnJhcnkoVFRSKQpsaWJyYXJ5KGxtZXJUZXN0KQpsaWJyYXJ5KHBvd2VybG1tKQpsaWJyYXJ5KGxzbWVhbnMpCmxpYnJhcnkoY2FyKQoKIyBBTk9WQQpsaWJyYXJ5KGtuaXRyKQpsaWJyYXJ5KHNqc3RhdHMpCgojIyMgRlVOQ1RJT05TCiMgQVBBIHN0eWxlIGNoYXJ0cwphcGF0aGVtZSA8LSB0aGVtZV9idygpICsKICB0aGVtZShwYW5lbC5ncmlkLm1ham9yID0gZWxlbWVudF9ibGFuaygpLAogICAgICAgIHBhbmVsLmdyaWQubWlub3IgPSBlbGVtZW50X2JsYW5rKCksCiAgICAgICAgcGFuZWwuYm9yZGVyID0gZWxlbWVudF9ibGFuaygpLAogICAgICAgIGF4aXMubGluZSA9IGVsZW1lbnRfbGluZSgpLAogICAgICAgIHRleHQgPSBlbGVtZW50X3RleHQoZmFtaWx5ID0gJ1RpbWVzJykpCgojIEZ1bmN0aW9uIHRoYXQgY291bnRzIHRoZSBudW1iZXIgaWYgTkEncyBpbiBhIGdpdmVuIHJvdzoKY291bnROQSA8LSBmdW5jdGlvbihkZikKICBhcHBseShkZiwgTUFSR0lOID0gMSwgRlVOID0gZnVuY3Rpb24oeCkgbGVuZ3RoKHhbaXMubmEoeCldKSkKCiMjIyBEQVRBCiMgTG9hZGluZyBnYXplIGRhdGEKZGF0X2F0dGVudGlvbiA8LSByZWFkLmNzdihmaWxlLmNob29zZSgpKQpkYXRfbWFzdGVyIDwtIHJlYWQuY3N2KGZpbGUuY2hvb3NlKCkpCgojIFJlY29kaW5nICctOTk5JywgJy04ODgnLCBhbmQgJy03NzcnIHRvIG1pc3NpbmcgdmFsdWVzICdOQScKZGF0X2F0dGVudGlvbltkYXRfYXR0ZW50aW9uID09IC05OTkgfCBkYXRfYXR0ZW50aW9uID09IC04ODggfCBkYXRfYXR0ZW50aW9uID09IC03NzddIDwtIE5BCmBgYA==</div>
 
 
 
@@ -276,7 +285,7 @@ $(document).ready(function () {
 <!-- code folding -->
 <script>
 $(document).ready(function () {
-  window.initializeSourceEmbed("Visual attention - Neutral vs competing vs. reinforcing ASDonly.Rmd");
+  window.initializeSourceEmbed("Visual attention - Neutral vs competing vs reinforcing ASDonly.Rmd");
   window.initializeCodeFolding("show" === "show");
 });
 </script>
