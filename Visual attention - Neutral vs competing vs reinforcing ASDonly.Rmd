@@ -11,8 +11,9 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 ```
 
 # Setup
-Please select "dat_visualattention.csv" for dat_attention data table and "dat_master.csv" for dat_master data table in order to run this script properly. <br>
-Missing values were coded as -999. We coded “-“ values as -888, indicating participants looked at the center of the screen and thus at neither distracter nor target. We coded “.” values as -777, indicating participants looking outside of the screen.
+Please select "dat_visualattention.csv" for dat_attention data table and "dat_master.csv" for dat_master data table in order to run this script properly.<br>
+Missing values were coded as -999. We coded “-“ values as -888, indicating participants looked at the center of the screen and thus at neither distracter nor target.<br>
+We coded “.” values as -777, indicating participants looking outside of the screen.
 ```{r results = FALSE}
 ### OPTIONS
 options(scipen = 3)
@@ -60,7 +61,8 @@ dat_master <- read.csv(file.choose())
 dat_attention[dat_attention == -999 | dat_attention == -888 | dat_attention == -777] <- NA
 ```
 
-There are 58 participants in this study that have been diagnosed with Autism Syndrom Disorder (ASD). All conditions were administered within participants, with ten trials per condition.
+There are 58 participants in this study that have been diagnosed with Autism Syndrom Disorder (ASD).
+All conditions were administered within participants, with ten trials per condition.
 ```{r results = FALSE}
 # We were only interested in participants with with Autism Syndrom Disorder
 dat_attention$Child_ID <- factor(dat_attention$Child_ID)
@@ -71,7 +73,10 @@ nrow(count(unique(dat_attention$Child_ID)))
 
 # Data cleaning and transforming
 ## Missing values and underperforming trials
-Our critical window is from 300 to 2000 ms after the onset of the target word. Trials on which children were not fixating either object for more than 50% of the critical window were excluded. These trials do not have adequate data. In sum, there were 1,313 trials. Of these, 397 (~30%) had more than 50% missing data. After exclusion, therefore, used 916 trials.
+Our critical window is from 300 to 2000 ms after the onset of the target word.
+Trials on which children were not fixating either object for more than 50% of the critical window were excluded.
+These trials do not have adequate data. In sum, there were 1,313 trials. Of these, 397 (~30%) had more than 50% missing data.
+After exclusion, therefore, used 916 trials.
 ```{r results = FALSE}
 ### SUBSETTING
 # Drop columns before and after critical period (3200 = frame 97, 4900 = frame 148)
