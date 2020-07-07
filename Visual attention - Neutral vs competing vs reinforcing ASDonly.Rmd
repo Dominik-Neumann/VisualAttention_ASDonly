@@ -155,3 +155,42 @@ descriptive_trial <- describeBy(dat_attention_analysiswindowNA$CountsTR,
                                 mat = TRUE, digits = 2)
 descriptive_trial
 ```
+
+### Transformation
+```{r results = FALSE}
+# Aliasing data
+dat_analysiswindow <- dat_attention_analysiswindowNA
+```
+
+In order to analyse data appropriately, data were transformed to a series of long datasets. First, a dataset for the analysis window only (frame 97 to frame 148) was created. Then, a dataset for all time points (frame 1 to frame 236) was created. Additionally, a dataset was generated that included the time before the analysis window as well as after the analysis window.<br>
+
+```{r results = FALSE}
+### TRANSFORMING ANALYSIS WINDOW ONLY
+dat_analysiswindow$Child_ID <- factor(dat_analysiswindow$Child_ID)
+dat_analysiswindow_long <- gather(dat_analysiswindow, frame, accuracy, frame_097:frame_148, factor_key = TRUE)
+
+### OVERALL DATA
+# Subsetting full data based on prior cleaning procedures
+dat_attention_full <- subset(dat_attention, Child_ID %in% dat_analysiswindow$Child_ID)
+
+# Subsetting for the pre-analysis window
+dat_attention_pre <- subset(dat_attention_full, select = -c(frame_097:frame_237))
+dat_attention_pre$prepost <- "pre-analysis"
+dat_attention_pre$Child_ID <- factor(dat_attention_pre$Child_ID)
+dat_attention_pre_long <- gather(dat_attention_pre, frame, accuracy, frame_001:frame_096, factor_key = TRUE)
+
+# Subsetting for the analysis window
+dat_attention_analysis <- subset(dat_attention_full, select = -c((frame_001:frame_096), (frame_149:frame_237)))
+dat_attention_analysis$prepost <- "analysis"
+dat_attention_analysis$Child_ID <- factor(dat_attention_analysis$Child_ID)
+dat_attention_analysis_long <- gather(dat_attention_analysis, frame, accuracy, frame_097:frame_148, factor_key = TRUE)
+
+# Subsetting for the post-analysis window
+dat_attention_post <- subset(dat_attention_full, select = -c((frame_001:frame_148)))
+dat_attention_post$prepost <- "post-analysis"
+dat_attention_post$Child_ID <- factor(dat_attention_post$Child_ID)
+dat_attention_post_long <- gather(dat_attention_post, frame, accuracy, frame_149:frame_237, factor_key = TRUE)
+
+# Combining
+dat_attention_prepost_long <- rbind(dat_attention_pre_long, dat_attention_analysis_long, dat_attention_post_long)
+```
