@@ -156,7 +156,7 @@ descriptive_trial <- describeBy(dat_attention_analysiswindowNA$CountsTR,
 descriptive_trial
 ```
 
-### Transformation
+## Transformation to long data
 ```{r results = FALSE}
 # Aliasing data
 dat_analysiswindow <- dat_attention_analysiswindowNA
@@ -192,5 +192,25 @@ dat_attention_post$Child_ID <- factor(dat_attention_post$Child_ID)
 dat_attention_post_long <- gather(dat_attention_post, frame, accuracy, frame_149:frame_237, factor_key = TRUE)
 
 # Combining
-dat_attention_prepost_long <- rbind(dat_attention_pre_long, dat_attention_analysis_long, dat_attention_post_long)
+dat_attention_long <- rbind(dat_attention_pre_long, dat_attention_analysis_long, dat_attention_post_long)
+```
+
+# Measuring Accuracy
+"ACCURACY" is measured as '0', '1', or 'NA'.<br>
+1 = participant focuses on target at specific frame<br>
+0 = participant focuses on the distracter at specific frame<br>
+NA = participant focuses either on a point outside the screen (wall, machines, roof, etc.) or on the center of the screen (neither picture) at specific frame<br>
+"MEAN ACCURACY" is measured as the mean of accuracy observations across individuals for each frame within a given conditions.
+```{r results = FALSE}
+# For the analysis window dataframe
+dat_analysiswindow_long$accuracy <- as.numeric(as.character(dat_analysiswindow_long$accuracy))
+dat_analysiswindow_long <- dat_analysiswindow_long %>%
+  dplyr::group_by(Child_ID, frame, Condition) %>%
+  dplyr::mutate(mean_accuracy = mean(accuracy, na.rm = TRUE))
+
+# For the overall dataframe
+dat_attention_long$accuracy <- as.numeric(as.character(dat_attention_long$accuracy))
+dat_attention_long <- dat_attention_long %>%
+  dplyr::group_by(Child_ID, frame, Condition) %>%
+  dplyr::mutate(mean_accuracy = mean(accuracy, na.rm = TRUE))
 ```
