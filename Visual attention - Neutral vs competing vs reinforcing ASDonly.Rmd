@@ -59,3 +59,40 @@ dat_master <- read.csv(file.choose())
 # Recoding '-999', '-888', and '-777' to missing values 'NA'
 dat_attention[dat_attention == -999 | dat_attention == -888 | dat_attention == -777] <- NA
 ```
+
+There are 58 participants in this study that have been diagnosed with Autism Syndrom Disorder (ASD). All conditions were administered within participants, with ten trials per condition.
+```{r results = FALSE}
+# We were only interested in participants with with Autism Syndrom Disorder
+dat_attention$Child_ID <- factor(dat_attention$Child_ID)
+dat_attention <-dat_attention %>%
+  dplyr::filter(Child_Type == "ASD")
+nrow(count(unique(dat_attention$Child_ID)))
+```
+
+# Data cleaning and transforming
+## Missing values and underperforming trials
+Our critical window is from 300 to 2000 ms after the onset of the target word. Trials on which children were not fixating either object for more than 50% of the critical window were excluded. These trials do not have adequate data. In sum, there were 1,313 trials. Of these, 397 (~30%) had more than 50% missing data. After exclusion, therefore, used 916 trials.
+```{r results = FALSE}
+### SUBSETTING
+# Drop columns before and after critical period (3200 = frame 97, 4900 = frame 148)
+dat_attention_analysiswindow <- subset(dat_attention, select = -c(frame_001:frame_096, frame_149:frame_237))
+
+### TRIAL-WISE DELETION
+# Count number of rows before deleting trials with more than 50% missing values
+nrow(dat_attention_analysiswindow)
+# Apply function countNA (see in "Functions") to critical dataset and exclude all rows with more than (number of variables divided by two) NAs between frame_097 and frame_148
+dat_attention_analysiswindowNA <- dat_attention_analysiswindow[countNA(subset(dat_attention_analysiswindow,
+                                                                              select = frame_097:frame_148)) < (ncol(subset(dat_attention_analysiswindow,
+                                                                                                                            select = frame_097:frame_148))/2),]
+# Count number of rows after deleting trials with more than 50% missing values
+nrow(dat_attention_analysiswindowNA)
+nrow(dat_attention_analysiswindow) - nrow(dat_attention_analysiswindowNA)
+(nrow(dat_attention_analysiswindow) - nrow(dat_attention_analysiswindowNA)) / (nrow(dat_attention_analysiswindow))
+```
+<b>Table 1</b> Number of trials after excluding trials with more than 50% missingness
+```{r}
+Process <- c("Before cleaning", "Number of excluded trials", "After cleaning")
+n <- c(1313, 397, 916)
+number_of_observations <- cbind(Process, n)
+as.data.frame(number_of_observations)
+```
