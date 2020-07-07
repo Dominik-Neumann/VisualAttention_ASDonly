@@ -76,7 +76,7 @@ dat_attention_analysiswindow <- subset(dat_attention, select = -c(frame_001:fram
 ```
 
 ## Missing values and underperforming trials
-Our critical window is from 300 to 2000 ms after the onset of the target word. Trials on which children were not fixating either object for more than 50% of the critical window were excluded. These trials do not have adequate data. In sum, there were 1,313 trials. Of these, 397 (~30%) had more than 50% missing data. After exclusion, therefore, used 916 trials.
+Our critical window is from 300 to 2000 ms after the onset of the target word. Trials on which children were not fixating either object for more than 50% of the critical window were excluded. These trials do not have adequate data. In sum, there were 1,313 trials. Of these, 397 (~30%) had more than 50% missing data. We further excluded 67 trials because participants with less than four valid trials were excluded from further analysis. After exclusion, therefore, used 849 trials.
 ```{r results = FALSE}
 ### TRIAL-WISE DELETION
 # Count number of rows before deleting trials with more than 50% missing values
@@ -111,5 +111,47 @@ dat_attention_analysiswindowNA <- dat_attention_analysiswindowNA[ ! dat_attentio
 # Counting number of trials within conditions for each participant after exclusion
 kidsxconditiontable1 <- count(dat_attention_analysiswindowNA, c("Child_ID", "Condition"))
 nrow(kidsxconditiontable1)
+916 - nrow(dat_attention_analysiswindowNA)
+nrow(dat_attention_analysiswindowNA)
+```
 
+## Overview of missing data
+Participants had a mean of 4.83 (SD = 6.13) missing values for the eye tracking data (participant did not look at either of the pictures).<br>
+<br>
+<b>Table 2</b> Missing values per trial (overall)
+```{r results = FALSE}
+dat_attention_analysiswindow_descriptive <- dat_attention_analysiswindowNA %>%
+  dplyr::select("Condition", starts_with("frame_"))
+dat_attention_analysiswindow_descriptive$NAcount <- countNA(dat_attention_analysiswindow_descriptive)
+describe(dat_attention_analysiswindow_descriptive$NAcount)
+```
+<br>
+<b>Table 3</b> Missing values (stratified by condition)
+```{r}
+# Summary
+descriptive_missing <- describeBy(dat_attention_analysiswindow_descriptive$NAcount,
+                                  dat_attention_analysiswindow_descriptive$Condition,
+                                  mat = TRUE, digits = 2)
+descriptive_missing
+```
+
+## Overview of trials per participant
+Participants completed a mean of 7.1 (SD = 1.95) trials per condition.<br>
+<b>Table 4</b> Summary trials per participants
+```{r results = FALSE}
+dat_attention_analysiswindowNA$Child_Condition <- interaction(dat_attention_analysiswindowNA$Child_ID,
+                                                              dat_attention_analysiswindowNA$Condition)
+# Creating variable containing counts of trials retained per participant
+dat_TRcounts <- ddply(dat_attention_analysiswindowNA, ~Child_Condition, summarise, CountsTR = length(unique(Tr_Num)))
+dat_attention_analysiswindowNA <- merge(dat_attention_analysiswindowNA, dat_TRcounts, by = "Child_Condition")
+describe(dat_attention_analysiswindowNA$CountsTR)
+```
+<p>
+<b>Table 5</b> Completed trials per participant (strafied by condition)
+```{r}
+# Summary
+descriptive_trial <- describeBy(dat_attention_analysiswindowNA$CountsTR,
+                                dat_attention_analysiswindowNA$Condition,
+                                mat = TRUE, digits = 2)
+descriptive_trial
 ```
