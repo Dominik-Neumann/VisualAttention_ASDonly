@@ -30,6 +30,7 @@ library(lme4)
 library(nlme)
 library(ez)
 library(multcomp)
+library(optimx)
 library(TTR)
 library(lmerTest)
 library(powerlmm)
@@ -73,103 +74,75 @@ nrow(count(unique(dat_attention$Child_ID)))
 ```
 
 # Data cleaning and transforming
-
-```{r}
-# Drop columns before and after the analysis window (3200 = frame 97, 4900 = frame 148)
-dat_attention_analysiswindow <- subset(dat_attention, select = -c(frame_001:frame_096, frame_149:frame_200))
-```
-
 ## Missing values and underperforming trials
-
-Our critical window is from 300 to 2000 ms after the onset of the target word. Trials on which children were not fixating either object for more than 50% of the critical window were excluded. These trials do not have adequate data. In sum, there were 1,313 trials. Of these, 397 (~30%) had more than 50% missing data. We further excluded 67 trials because participants with less than four valid trials were excluded from further analysis. After exclusion we therefore used 849 trials.
-
+Our critical window is from 300 to 2000 ms after the onset of the target word. Trials on which children were not fixating either object for more than 50% of the critical window were excluded. These trials do not have adequate data and at the extreme could include instances where children looked at one object for a single frame at the start of the window and then looked away (and would therefore have 0 or 100% accuracy).
 ```{r results = FALSE}
-### TRIAL-WISE DELETION
-# Count number of rows before deleting trials with more than 50% missing values
-nrow(dat_attention_analysiswindow)
-# Apply function countNA (see in "Functions") to critical dataset and exclude all rows with more than (number of variables divided by two) NAs between frame_097 and frame_148
-dat_attention_analysiswindowNA <- dat_attention_analysiswindow[countNA(subset(dat_attention_analysiswindow,
-                                                                              select = frame_097:frame_148)) < (ncol(subset(dat_attention_analysiswindow,
-                                                                                                                            select = frame_097:frame_148))/2),]
-# Count number of rows after deleting trials with more than 50% missing values
-nrow(dat_attention_analysiswindowNA)
-nrow(dat_attention_analysiswindow) - nrow(dat_attention_analysiswindowNA)
-(nrow(dat_attention_analysiswindow) - nrow(dat_attention_analysiswindowNA)) / (nrow(dat_attention_analysiswindow))
+dat_attention_window <- subset(dat_attention, select = -c(frame_001:frame_096, frame_149:frame_200))
+
+dat_attention_window_trialNA <- dat_attention_window[countNA(subset(dat_attention_window, select = frame_097:frame_148)) < (ncol(subset(dat_attention_window, select = frame_097:frame_148))/2),]
 ```
 
-<b>Table 1</b> Number of trials after excluding trials with more than 50% missingness
+There were n = 397 trials with more than 50% missing values across variables assed, these were deleted, leading to 916 observed trials.
+<b> Table 1 </b>
 ```{r}
 Process <- c("Before cleaning", "Number of excluded trials", "After cleaning")
-n <- c(1313, 397, 916)
+n <- c(nrow(dat_attention_window), nrow(dat_attention_window) - nrow(dat_attention_window_trialNA), nrow(dat_attention_window_trialNA))
 number_of_observations <- cbind(Process, n)
 as.data.frame(number_of_observations)
 ```
 
 ```{r results = FALSE}
-### PARTICIPANT-WISE DELETION
-# Counting number of trials within conditions for each participant before exclusion
-kidsxconditiontable <- count(dat_attention_analysiswindowNA, c("Child_ID", "Condition"))
-nrow(kidsxconditiontable)
+`%notin%` <- Negate(`%in%`)
 
-# Excluding participant who were contributing to little
-id_for_exclusion <- c("8016", "8022", "8047", "8049", "8057", "8058", "8059", "8062", "8063", "8072", "8076", "8077")
-dat_attention_analysiswindowNA <- dat_attention_analysiswindowNA[ ! dat_attention_analysiswindowNA$Child_ID %in% id_for_exclusion, ]
+childxconditioncount_pre <- count(dat_attention_window_trialNA, c("Child_ID", "Condition"))
+dat_attention_critical_trialNA <- dat_attention_window_trialNA %>%
+  dplyr::filter(Child_ID %notin% c("8014", "8016", "8022", "8031", "8036", "8044", "8047", "8049", "8050", "8055", "8057", "8058", "8059", "8061",  "8062", "8063", "8072", "8074", "8076", "8077"))
+childxconditioncount_post <- count(dat_attention_window_trialNA, c("Child_ID", "Condition"))
+```
 
-# Counting number of trials within conditions for each participant after exclusion
-kidsxconditiontable1 <- count(dat_attention_analysiswindowNA, c("Child_ID", "Condition"))
-nrow(kidsxconditiontable1)
-916 - nrow(dat_attention_analysiswindowNA)
-nrow(dat_attention_analysiswindowNA)
+There were N = 56 participants who provided data. However, 20 participants contributed less than 4 trials per neutral/competing/reinforcing condition respectively. These were excluded in the next step. Thus, after excluding participants who contributed less than four trials to the experiment the new number of participants is N = 36. <p>
+<p>
+<b> Table 2 </b>
+```{r}
+Process <- c("Before cleaning", "After cleaning")
+N <- c(length(unique(childxconditioncount_pre$Child_ID)), length(unique(childxconditioncount_post$Child_ID)))
+number_of_participants <- cbind(Process, N)
+as.data.frame(number_of_participants)
 ```
 
 ## Overview of missing data
-After excluding participants with more than 50% missingness, participants had on average 4.83 (SD = 6.13) missing values for the eye tracking data (participant did not look at either of the pictures). There were significantly less missing values in the reinforcing condition as compared to the competing condition (&Delta; = -1.51, <i>CI</i> [-2.80, -0.23], <i>p</i> = 0.02) and as compared to the neutral condition (&Delta; = -1.43, <i>CI</i> [-2.74, -0.19], <i>p</i> = 0.02). This might be due to the fact that there were less observations in the reinforcing condition than in the other two condition, because of fewer number of trials (N<sub>competing</sub> = 316, N<sub>neutral</sub> = 329, N<sub>reinforcing</sub> = 204). That is, there were 6 trials in the reinforcing condition, but 10 trials in the competing and neutral condition respectively.<br>
 
-<b>Table 2</b> Missing values per trial (overall)
+A median of 3 values (M = 4.60, SD = 5.84) were missing per participant for the eye tracking data (participant did not look at either of the pictures). Table 3 summarizes overall sample and Table 4 summarizes missing values by condition. <br>
+
+<b>Table 3 </b>
 ```{r results = FALSE}
-dat_attention_analysiswindow_descriptive <- dat_attention_analysiswindowNA %>%
+dat_attention_window_descriptive <- dat_attention_window_trialNA %>%
   dplyr::select("Condition", starts_with("frame_"))
-dat_attention_analysiswindow_descriptive$NAcount <- countNA(dat_attention_analysiswindow_descriptive)
-describe(dat_attention_analysiswindow_descriptive$NAcount)
+dat_attention_window_descriptive$NAcount <- countNA(dat_attention_window_descriptive)
+describe(dat_attention_window_descriptive$NAcount)
 ```
 
-<b>Table 3</b> Missing values (stratified by condition)
+<b>Table 4 </b>
 ```{r}
-# Summary
-descriptive_missing <- describeBy(dat_attention_analysiswindow_descriptive$NAcount,
-                                  dat_attention_analysiswindow_descriptive$Condition,
+descriptive_missing <- describeBy(dat_attention_window_descriptive$NAcount,
+                                  dat_attention_window_descriptive$Condition,
                                   mat = TRUE, digits = 2)
 descriptive_missing
-anova_missingvalues <- aov(NAcount ~ Condition, data = dat_attention_analysiswindow_descriptive)
-TukeyHSD(anova_missingvalues)
 ```
 
 ## Overview of trials per participant
+A median of 7.5 trials were completed per participant overall (M = 7.40, SD = 1.84). Table 5 summarizes completed trials by condition. <br>
 
-Participants completed a mean of 7.1 (SD = 1.95) trials per condition.<br>
-
-<b>Table 4</b> Summary trials per participants
+<b>Table 5 </b>
 ```{r results = FALSE}
-dat_attention_analysiswindowNA$Child_Condition <- interaction(dat_attention_analysiswindowNA$Child_ID,
-                                                              dat_attention_analysiswindowNA$Condition)
-# Creating variable containing counts of trials retained per participant
-dat_TRcounts <- ddply(dat_attention_analysiswindowNA,
-                      ~Child_Condition,
-                      summarise,
-                      CountsTR = length(unique(Tr_Num)))
+dat_attention_window_trialNA$Child_Condition <- interaction(dat_attention_window_trialNA$Child_ID,
+                                                            dat_attention_window_trialNA$Condition)
 
-dat_attention_analysiswindowNA <- merge(dat_attention_analysiswindowNA,
-                                        dat_TRcounts,
-                                        by = "Child_Condition")
+dat_counts <- ddply(dat_attention_window_trialNA, ~Child_Condition, summarise, Counts_TR = length(unique(Tr_Num)))
+dat_attention_window_trialNA <- merge(dat_attention_window_trialNA, dat_counts, by = "Child_Condition")
 
-describe(dat_attention_analysiswindowNA$CountsTR)
-```
-
-<b>Table 5</b> Completed trials per participant (strafied by condition)
-```{r}
-# Summary
-descriptive_trial <- describeBy(dat_attention_analysiswindowNA$CountsTR,
-                                dat_attention_analysiswindowNA$Condition,
+descriptive_trial <- describeBy(dat_attention_window_trialNA$Counts_TR,
+                                dat_attention_window_trialNA$Condition,
                                 mat = TRUE, digits = 2)
 descriptive_trial
 ```
@@ -178,7 +151,7 @@ descriptive_trial
 
 ```{r results = FALSE}
 # Aliasing data
-dat_analysiswindow <- dat_attention_analysiswindowNA
+dat_analysiswindow <- dat_attention_window_trialNA
 ```
 
 In order to analyse data appropriately, data was transformed to a series of long datasets. First, a dataset for the analysis window only (frame 97 to frame 148) was created. Then, a dataset for all time points (frame 1 to frame 200) was created. Additionally, a dataset was generated that included the time before the analysis window as well as after the analysis window.<br>
@@ -186,10 +159,7 @@ In order to analyse data appropriately, data was transformed to a series of long
 ```{r results = FALSE}
 ### TRANSFORMING ANALYSIS WINDOW ONLY
 dat_analysiswindow$Child_ID <- factor(dat_analysiswindow$Child_ID)
-dat_analysiswindow_long <- gather(dat_analysiswindow,
-                                  frame, accuracy,
-                                  frame_097:frame_148,
-                                  factor_key = TRUE)
+dat_analysiswindow_long <- gather(dat_analysiswindow, frame, accuracy, frame_097:frame_148, factor_key = TRUE)
 
 ### OVERALL DATA
 # Subsetting full data based on prior cleaning procedures
@@ -199,33 +169,22 @@ dat_attention_full <- subset(dat_attention, Child_ID %in% dat_analysiswindow$Chi
 dat_attention_pre <- subset(dat_attention_full, select = -c(frame_097:frame_200))
 dat_attention_pre$prepost <- "pre-analysis"
 dat_attention_pre$Child_ID <- factor(dat_attention_pre$Child_ID)
-dat_attention_pre_long <- gather(dat_attention_pre,
-                                 frame, accuracy,
-                                 frame_001:frame_096,
-                                 factor_key = TRUE)
+dat_attention_pre_long <- gather(dat_attention_pre, frame, accuracy, frame_001:frame_096, factor_key = TRUE)
 
 # Subsetting for the analysis window
 dat_attention_analysis <- subset(dat_attention_full, select = -c((frame_001:frame_096), (frame_149:frame_200)))
 dat_attention_analysis$prepost <- "analysis"
 dat_attention_analysis$Child_ID <- factor(dat_attention_analysis$Child_ID)
-dat_attention_analysis_long <- gather(dat_attention_analysis,
-                                      frame, accuracy,
-                                      frame_097:frame_148,
-                                      factor_key = TRUE)
+dat_attention_analysis_long <- gather(dat_attention_analysis, frame, accuracy, frame_097:frame_148, factor_key = TRUE)
 
 # Subsetting for the post-analysis window
 dat_attention_post <- subset(dat_attention_full, select = -c((frame_001:frame_148)))
 dat_attention_post$prepost <- "post-analysis"
 dat_attention_post$Child_ID <- factor(dat_attention_post$Child_ID)
-dat_attention_post_long <- gather(dat_attention_post,
-                                  frame, accuracy,
-                                  frame_149:frame_200,
-                                  factor_key = TRUE)
+dat_attention_post_long <- gather(dat_attention_post, frame, accuracy, frame_149:frame_200, factor_key = TRUE)
 
 # Combining
-dat_attention_long <- rbind(dat_attention_pre_long,
-                            dat_attention_analysis_long,
-                            dat_attention_post_long)
+dat_attention_long <- rbind(dat_attention_pre_long, dat_attention_analysis_long, dat_attention_post_long)
 ```
 
 # Measuring Accuracy
@@ -254,18 +213,17 @@ dat_attention_long <- dat_attention_long %>%
 Figure 1 depicts development of mean accuracy. That is, the y-axis describes mean accuracy for all participants over all trials and the x-axis describes the time from beginning to end of the experiment. Mean accuracy measures are stratified by condition. We can see that children generally paid more attention to the correct stimulus in the "reinforcing condition". Children further paid the least attention to the correct stimulus in the competing condition. However, an interesting orienting pattern emerged in the beginning, where participants focus on the correct picture first, then looked increasingly more at the wrong - more salient - stimulus, and then went back to the correct stimulus. 
 
 ```{r results = FALSE}
-dat_attention_kidxcondition <- describeBy(dat_attention_long$mean_accuracy,
-                                          list(dat_attention_long$Condition,
-                                               dat_attention_long$frame),
-                                          mat = TRUE, digits = 2)
-names(dat_attention_kidxcondition)[names(dat_attention_kidxcondition) == 'group1'] = 'condition'
-names(dat_attention_kidxcondition)[names(dat_attention_kidxcondition) == 'group2'] = 'frame'
+dat_attention_plot <- describeBy(dat_attention_long$mean_accuracy,
+                                 list(dat_attention_long$Condition,
+                                      dat_attention_long$frame),
+                                 mat = TRUE, digits = 2)
+names(dat_attention_plot)[names(dat_attention_plot) == 'group1'] = 'condition'
+names(dat_attention_plot)[names(dat_attention_plot) == 'group2'] = 'frame'
 ```
 
 <b> Figure 1 </b>
 ```{r, fig.width = 9, fig.height = 4}
-ggplot(dat_attention_kidxcondition,
-       aes(x = sort(frame, decrease = FALSE), y = mean, group = condition, linetype = condition)) +
+ggplot(dat_attention_plot, aes(x = sort(frame, decrease = FALSE), y = mean, group = condition, linetype = condition)) +
   geom_line(stat = "identity") +
   geom_ribbon(aes(ymin = mean - se, ymax = mean + se, fill = "Mean +/- 1SE"), alpha = 0.2) +
   scale_fill_manual("", values = "grey12") +
@@ -277,5 +235,21 @@ ggplot(dat_attention_kidxcondition,
                    labels = c("0 ms", "300 ms", "2000 ms")) +
   geom_vline(xintercept = 97, linetype = "dashed") +
   geom_vline(xintercept = 148, linetype = "dashed")
+```
+
+# Time series analysis
+
+```{r}
+dat_attention_long$frame <- as.character(dat_attention_long$frame)
+dat_attention_long$frame.n <- substr(dat_attention_long$frame, 7, nchar(dat_attention_long$frame))
+dat_attention_long$frame.n <- as.numeric(dat_attention_long$frame.n)
+```
+
+```{r}
+dat_attention_long$Tr_Num <- as.factor(dat_attention_long$Tr_Num)
+dat_attention_long$mean_accuracy.c <- scale(dat_attention_long$mean_accuracy, center = TRUE, scale = FALSE)
+model_time_sequence <- lmer(mean_accuracy.c ~ Condition * frame.n + ( 1 | Child_ID) + ( 1 | Tr_Num),
+                            data = dat_attention_long, REML = FALSE)
+summary(model_time_sequence)
 ```
 
